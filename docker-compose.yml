@@ -1,0 +1,61 @@
+#yml file:
+
+version: '3'
+
+services:
+  # MySQL service
+  db:
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: devops
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: devops
+
+  # WordPress service
+  wordpress:
+    image: wordpress:latest
+    depends_on:
+      - db
+    ports:
+      - "9720:80" # Change the port as needed
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: devops
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - wordpress_data:/var/www/html
+
+  # NGINX service
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80" # You can also use SSL configuration if needed
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf # Custom NGINX configuration
+
+  # Prometheus service
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090" # Prometheus web UI
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+  # Grafana service
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000" # Grafana web UI
+    environment:
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+volumes:
+  db_data:
+  wordpress_data:
+  grafana_data
